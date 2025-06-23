@@ -15,6 +15,11 @@ from utils.btc_client import BTCClient
 load_dotenv(".env")
 load_dotenv(".env.local", override=True)
 
+# Debug: Print loaded environment variables (remove after confirming)
+print("ANTHROPIC_API_KEY:", os.getenv("ANTHROPIC_API_KEY"))
+print("MARA_API_KEY:", os.getenv("MARA_API_KEY"))
+print("NEWS_API_KEY:", os.getenv("NEWS_API_KEY"))
+
 app = FastAPI(title="MARA Resource Allocation API", version="1.0.0")
 
 app.add_middleware(
