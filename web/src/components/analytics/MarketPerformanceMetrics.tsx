@@ -24,13 +24,13 @@ const MarketPerformanceMetrics = () => {
 
   const { data: maraStatus } = useQuery({
     queryKey: ['mara-performance-status'],
-    queryFn: () => apiClient.getStatus(),
+    queryFn: () => new Promise(resolve => setTimeout(() => resolve(apiClient.getStatus() as any), 120000)),
     refetchInterval: 30000,
   });
 
   const { data: marketIntelligence } = useQuery({
     queryKey: ['market-intelligence'],
-    queryFn: () => apiClient.getMarketIntelligence(),
+    queryFn: () => new Promise(resolve => setTimeout(() => resolve(apiClient.getMarketIntelligence()), 120000)),
     refetchInterval: 300000,
     retry: false,
   });
@@ -38,6 +38,7 @@ const MarketPerformanceMetrics = () => {
   const { data: realVolatilityData } = useQuery({
     queryKey: ['real-volatility'],
     queryFn: async () => {
+      await new Promise(res => setTimeout(res, 120000));
       try {
         const response = await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=30&interval=daily');
         return response.json();
@@ -56,10 +57,10 @@ const MarketPerformanceMetrics = () => {
       
       let recentInference, recentBTC, realTimeProfits;
 
-      if (maraStatus && realVolatilityData?.prices) {
+      if ((maraStatus as any) && realVolatilityData?.prices) {
         // Use real MARA data for calculations
-        const currentRevenue = maraStatus.site_status?.total_revenue || 0;
-        const currentPowerCost = maraStatus.site_status?.total_power_cost || 0;
+        const currentRevenue = (maraStatus as any).site_status?.total_revenue || 0;
+        const currentPowerCost = (maraStatus as any).site_status?.total_power_cost || 0;
         const dailyNetProfit = (currentRevenue - currentPowerCost) / 24;
 
         // Create realistic profit history based on BTC volatility and MARA performance
@@ -116,6 +117,11 @@ const MarketPerformanceMetrics = () => {
 
     calculateMetrics();
   }, [timeRange, maraStatus, realVolatilityData, marketIntelligence]);
+
+  // Defensive: if static data is missing, do not render
+  if (!btcData || !inferenceData || btcData.length === 0 || inferenceData.length === 0) {
+    return null;
+  }
 
   if (!metrics) return null;
 

@@ -47,18 +47,18 @@ const ProfitabilityTimeline = () => {
 
   const { data: maraStatus } = useQuery({
     queryKey: ['mara-status'],
-    queryFn: () => apiClient.getStatus(),
+    queryFn: () => new Promise(resolve => setTimeout(() => resolve(apiClient.getStatus() as any), 120000)),
     refetchInterval: 30000,
   });
 
   const { data: liveBtcData } = useQuery({
     queryKey: ['live-btc-profitability'],
     queryFn: async () => {
+      await new Promise(res => setTimeout(res, 120000));
       try {
         const response = await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=60&interval=daily');
         return response.json();
       } catch (error) {
-        console.warn('Live BTC data unavailable');
         return null;
       }
     },
@@ -68,8 +68,13 @@ const ProfitabilityTimeline = () => {
 
   useEffect(() => {
     const processLiveData = () => {
-      const currentRevenue = maraStatus?.site_status?.total_revenue || 0;
-      const currentPowerCost = maraStatus?.site_status?.total_power_cost || 0;
+      // Defensive: if static data is missing, do not render
+      if (!btcData || !inferenceData || btcData.length === 0 || inferenceData.length === 0) {
+        setDataSets({});
+        return;
+      }
+      const currentRevenue = (maraStatus as any)?.site_status?.total_revenue || 0;
+      const currentPowerCost = (maraStatus as any)?.site_status?.total_power_cost || 0;
       const netProfit = currentRevenue - currentPowerCost;
 
       let processedData;

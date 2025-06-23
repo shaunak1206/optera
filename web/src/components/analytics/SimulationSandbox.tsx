@@ -27,13 +27,13 @@ const SimulationSandbox = () => {
 
     const { data: maraStatus } = useQuery({
         queryKey: ['mara-simulation-status'],
-        queryFn: () => apiClient.getStatus(),
+        queryFn: () => new Promise(resolve => setTimeout(() => resolve(apiClient.getStatus() as any), 120000)),
         refetchInterval: 30000,
     });
 
     const { data: marketIntelligence } = useQuery({
         queryKey: ['simulation-market-intel'],
-        queryFn: () => apiClient.getMarketIntelligence(),
+        queryFn: () => new Promise(resolve => setTimeout(() => resolve(apiClient.getMarketIntelligence()), 120000)),
         refetchInterval: 300000,
         retry: false,
     });
@@ -41,8 +41,8 @@ const SimulationSandbox = () => {
     useEffect(() => {
         // Generate simulation outcomes based on real MARA data
         const generateSimulations = () => {
-            const currentRevenue = maraStatus?.site_status?.total_revenue || 0;
-            const currentPowerCost = maraStatus?.site_status?.total_power_cost || 0;
+            const currentRevenue = (maraStatus as any)?.site_status?.total_revenue || 0;
+            const currentPowerCost = (maraStatus as any)?.site_status?.total_power_cost || 0;
             const baseProfit = (currentRevenue - currentPowerCost) / 24; // Daily profit
             
             let recentData, actualProfitData;
@@ -125,6 +125,11 @@ const SimulationSandbox = () => {
         if (selectedScenario && simulationOutcomes[selectedScenario]) {
             setSimulationResult(simulationOutcomes[selectedScenario]);
         }
+    }
+
+    // Defensive: if static data is missing, do not render
+    if (!btcData || !inferenceData || btcData.length === 0 || inferenceData.length === 0) {
+      return null;
     }
 
   return (

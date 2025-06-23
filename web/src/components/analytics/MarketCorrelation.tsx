@@ -29,13 +29,14 @@ const MarketCorrelation = () => {
 
   const { data: maraStatus } = useQuery({
     queryKey: ['mara-correlation-status'],
-    queryFn: () => apiClient.getStatus(),
+    queryFn: () => new Promise(resolve => setTimeout(() => resolve(apiClient.getStatus() as any), 120000)),
     refetchInterval: 30000,
   });
 
   const { data: energyData } = useQuery({
     queryKey: ['energy-correlation'],
     queryFn: async () => {
+      await new Promise(res => setTimeout(res, 120000));
       try {
         const response = await fetch('https://api.gridstatus.io/v1/datasets/pjm/load_forecast/latest?format=json&limit=60');
         return response.json();
@@ -51,6 +52,7 @@ const MarketCorrelation = () => {
   const { data: btcMarketData } = useQuery({
     queryKey: ['btc-correlation'],
     queryFn: async () => {
+      await new Promise(res => setTimeout(res, 120000));
       try {
         const response = await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=60&interval=daily');
         return response.json();
@@ -67,10 +69,10 @@ const MarketCorrelation = () => {
     const createRealTimeCorrelationData = () => {
       let data: CorrelationDataPoint[];
 
-      if (maraStatus && btcMarketData?.prices && energyData?.data) {
+      if ((maraStatus as any) && btcMarketData?.prices && energyData?.data) {
         // Use real-time data for correlation analysis
-        const currentRevenue = maraStatus.site_status?.total_revenue || 0;
-        const currentPowerCost = maraStatus.site_status?.total_power_cost || 0;
+        const currentRevenue = (maraStatus as any).site_status?.total_revenue || 0;
+        const currentPowerCost = (maraStatus as any).site_status?.total_power_cost || 0;
         const recentPrices = btcMarketData.prices.slice(-60);
         const recentEnergyData = energyData.data.slice(-60);
 
@@ -91,7 +93,7 @@ const MarketCorrelation = () => {
         // Fallback to processed static data with MARA context
         data = btcData.map((btcPoint, index) => {
           const inferencePoint = inferenceData[index];
-          const maraMultiplier = maraStatus ? (maraStatus.site_status?.total_revenue || 1000) / 1000 : 1;
+          const maraMultiplier = (maraStatus as any) ? ((maraStatus as any).site_status?.total_revenue || 1000) / 1000 : 1;
           
           if (inferencePoint) {
             return {
@@ -117,6 +119,11 @@ const MarketCorrelation = () => {
 
     createRealTimeCorrelationData();
   }, [maraStatus, btcMarketData, energyData]);
+
+  // Defensive: if static data is missing, do not render
+  if (!btcData || !inferenceData || btcData.length === 0 || inferenceData.length === 0) {
+    return null;
+  }
 
   return (
     <Card className="bg-terminal-surface border-terminal-border">
