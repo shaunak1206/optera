@@ -13,37 +13,58 @@ const ProfitabilityChart = () => {
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
-  // Load price history from backend on mount
-  useEffect(() => {
-    const fetchBackendPrices = async () => {
-      try {
-        const status = await apiClient.getStatus();
-        if (status.current_prices) {
-          setPriceHistory(status.current_prices);
-          setLastFetch(new Date());
-        }
-      } catch (error) {
-        console.error('❌ Failed to fetch MARA prices from backend:', error);
+  // Direct MARA API price fetching
+  const fetchMaraPrices = useCallback(async () => {
+    try {
+      console.log('🔄 Fetching MARA prices from API...');
+      const response = await fetch('https://mara-hackathon-api.onrender.com/prices');
+      if (response.ok) {
+        const newPrices: MaraPrice[] = await response.json();
+        console.log('📊 MARA API Prices fetched:', {
+          timestamp: new Date().toISOString(),
+          pricesCount: newPrices.length,
+          latestPrice: newPrices[0],
+          priceRange: {
+            hash: { min: Math.min(...newPrices.map(p => p.hash_price)), max: Math.max(...newPrices.map(p => p.hash_price)) },
+            token: { min: Math.min(...newPrices.map(p => p.token_price)), max: Math.max(...newPrices.map(p => p.token_price)) },
+            energy: { min: Math.min(...newPrices.map(p => p.energy_price)), max: Math.max(...newPrices.map(p => p.energy_price)) }
+          }
+        });
+        
+        // Store in localStorage for persistence
+        localStorage.setItem('mara-price-history', JSON.stringify(newPrices));
+        setPriceHistory(newPrices);
+        setLastFetch(new Date());
+      } else {
+        console.error('❌ API response not ok:', response.status, response.statusText);
       }
-    };
-    fetchBackendPrices();
+    } catch (error) {
+      console.error('❌ Failed to fetch MARA prices:', error);
+    }
   }, []);
+
+  // Load price history from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('mara-price-history');
+    if (stored) {
+      try {
+        const parsedData = JSON.parse(stored);
+        setPriceHistory(parsedData);
+        console.log('📦 Loaded price history from storage:', parsedData.length, 'entries');
+      } catch (error) {
+        console.error('❌ Failed to parse stored price data:', error);
+      }
+    }
+    
+    // Initial fetch
+    fetchMaraPrices();
+  }, [fetchMaraPrices]);
 
   // Set up interval for continuous fetching (every 5 minutes to match API)
   useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const status = await apiClient.getStatus();
-        if (status.current_prices) {
-          setPriceHistory(status.current_prices);
-          setLastFetch(new Date());
-        }
-      } catch (error) {
-        console.error('❌ Failed to fetch MARA prices from backend:', error);
-      }
-    }, 5 * 60 * 1000); // 5 minutes
+    const interval = setInterval(fetchMaraPrices, 5 * 60 * 1000); // 5 minutes
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchMaraPrices]);
 
   // Combine and transform price data for the chart - use direct API data if available, fallback to status data
   const sourcePrices = priceHistory.length > 0 ? priceHistory : (statusData?.current_prices || []);
