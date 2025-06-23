@@ -11,7 +11,9 @@ from agents.chatbot_agent import ChatbotAgent
 from utils.mara_client import MaraClient
 from utils.btc_client import BTCClient
 
-load_dotenv()
+# Load .env first, then .env.local (which overrides .env if present)
+load_dotenv(".env")
+load_dotenv(".env.local", override=True)
 
 app = FastAPI(title="MARA Resource Allocation API", version="1.0.0")
 
