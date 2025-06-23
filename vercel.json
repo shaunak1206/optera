@@ -1,5 +1,17 @@
 {
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/" }
-  ]
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Optera-Debug", "value": "SPA-Routing-Active" }
+      ]
+    }
+  ],
+  "errorPages": {
+    "404": "/index.html"
+  }
 } 
