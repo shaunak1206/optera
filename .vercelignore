@@ -1,5 +1,15 @@
+# Backend files - using Render for backend
 backend/
-.env
-.env.local
+api/
+agents/
+models/
+*.py
 *.pyc
 __pycache__/
+
+# Environment and config files
+.env
+.env.local
+render.yaml
+railway.toml
+requirements.txt
