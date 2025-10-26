@@ -4,8 +4,8 @@ import os
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        # Handle different API routes
-        if self.path == '/api/agents/outputs':
+        # Handle different API routes (Vercel removes /api prefix)
+        if self.path == '/agents/outputs':
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -57,7 +57,7 @@ class handler(BaseHTTPRequestHandler):
             
             self.wfile.write(json.dumps(mock_data).encode())
             
-        elif self.path == '/api/status':
+        elif self.path == '/status':
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -96,7 +96,7 @@ class handler(BaseHTTPRequestHandler):
             self.send_response(404)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps({"error": "Not found"}).encode())
+            self.wfile.write(json.dumps({"error": "Not found", "path": self.path}).encode())
     
     def do_OPTIONS(self):
         self.send_response(200)
