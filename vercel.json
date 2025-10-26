@@ -9,14 +9,46 @@
       }
     },
     {
-      "src": "api/index.py",
+      "src": "api/status.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "api/agents/outputs.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "api/chat/history.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "api/chat/summary.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "api/allocate.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.py"
+      "src": "/api/status",
+      "dest": "/api/status.py"
+    },
+    {
+      "src": "/api/agents/outputs",
+      "dest": "/api/agents/outputs.py"
+    },
+    {
+      "src": "/api/chat/history",
+      "dest": "/api/chat/history.py"
+    },
+    {
+      "src": "/api/chat/summary",
+      "dest": "/api/chat/summary.py"
+    },
+    {
+      "src": "/api/allocate",
+      "dest": "/api/allocate.py"
     },
     {
       "src": "/(.*)",
