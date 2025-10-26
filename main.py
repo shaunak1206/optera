@@ -13,6 +13,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+async def root():
+    """Root endpoint to confirm the service is running"""
+    return {
+        "message": "Optera API is running!",
+        "status": "active",
+        "endpoints": [
+            "/api/status",
+            "/api/agents/outputs", 
+            "/api/chat/history",
+            "/api/chat/summary",
+            "/api/allocate",
+            "/api/chat"
+        ]
+    }
+
 @app.get("/api/status")
 async def get_status():
     """Get system status and market data"""
