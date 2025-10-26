@@ -21,10 +21,11 @@ async def root():
         "status": "active",
         "endpoints": [
             "/api/status",
-            "/api/agents/outputs", 
+            "/api/agents/outputs",
             "/api/chat/history",
             "/api/chat/summary",
             "/api/allocate",
+            "/api/deploy",
             "/api/chat"
         ]
     }
@@ -135,15 +136,28 @@ async def get_chat_summary():
 
 @app.post("/api/allocate")
 async def allocate_resources():
-    """Handle resource allocation"""
+    """Handle resource allocation optimization"""
+    return {
+        "allocation": {
+            "air_miners": 150,
+            "hydro_miners": 200,
+            "immersion_miners": 100,
+            "gpu_compute": 35,
+            "asic_compute": 280
+        },
+        "expected_revenue": 582000,
+        "expected_cost": 75000,
+        "efficiency_score": 87.5,
+        "reasoning": "Optimized allocation for 70% inference priority, maximizing revenue while maintaining efficient power usage."
+    }
+
+@app.post("/api/deploy")
+async def deploy_allocation():
+    """Deploy resource allocation to production"""
     return {
         "status": "success",
-        "allocation": {
-            "inference": 70,
-            "mining": 30
-        },
-        "revenue_impact": "+12.5%",
-        "timestamp": "2024-01-15T23:25:00Z"
+        "message": "Allocation deployed successfully",
+        "deployed_at": "2024-01-15T23:25:00Z"
     }
 
 @app.post("/api/chat")
