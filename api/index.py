@@ -92,15 +92,112 @@ class handler(BaseHTTPRequestHandler):
             
             self.wfile.write(json.dumps(mock_status).encode())
             
+        elif self.path == '/chat/history' or self.path.startswith('/chat/history?'):
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            mock_history = {
+                "history": [
+                    {
+                        "id": "1",
+                        "message": "System status check completed",
+                        "timestamp": "2024-01-15T23:20:00Z",
+                        "type": "system"
+                    },
+                    {
+                        "id": "2", 
+                        "message": "All agents operational",
+                        "timestamp": "2024-01-15T23:19:00Z",
+                        "type": "system"
+                    }
+                ]
+            }
+            
+            self.wfile.write(json.dumps(mock_history).encode())
+            
+        elif self.path == '/chat/summary':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            mock_summary = {
+                "summary": "System operational with all 8 agents ready. Current allocation optimized for 70% inference priority. Revenue at $582K/hr with 92% efficiency.",
+                "timestamp": "2024-01-15T23:25:00Z"
+            }
+            
+            self.wfile.write(json.dumps(mock_summary).encode())
+            
         else:
             self.send_response(404)
             self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": "Not found", "path": self.path}).encode())
+    
+    def do_POST(self):
+        # Handle POST requests
+        if self.path == '/allocate':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            mock_response = {
+                "status": "success",
+                "allocation": {
+                    "inference": 70,
+                    "mining": 30
+                },
+                "revenue_impact": "+12.5%",
+                "timestamp": "2024-01-15T23:25:00Z"
+            }
+            
+            self.wfile.write(json.dumps(mock_response).encode())
+            
+        elif self.path == '/chat':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            mock_chat_response = {
+                "response": "All systems are operational. Current allocation is optimized for maximum revenue at 70% inference priority.",
+                "timestamp": "2024-01-15T23:25:00Z"
+            }
+            
+            self.wfile.write(json.dumps(mock_chat_response).encode())
+            
+        else:
+            self.send_response(404)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": "Not found", "path": self.path}).encode())
+    
+    def do_DELETE(self):
+        # Handle DELETE requests
+        if self.path == '/chat/history':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            mock_response = {"status": "cleared"}
+            self.wfile.write(json.dumps(mock_response).encode())
+            
+        else:
+            self.send_response(404)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(json.dumps({"error": "Not found", "path": self.path}).encode())
     
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
