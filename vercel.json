@@ -1,9 +1,8 @@
 {
-  "version": 2,
-  "buildCommand": "cd web && npm install && npm run build",
+  "buildCommand": "cd web && npm run build",
   "outputDirectory": "web/dist",
-  "cleanUrls": true,
-  "trailingSlash": false,
+  "installCommand": "cd web && npm install",
+  "framework": null,
   "rewrites": [
     {
       "source": "/(.*)",
