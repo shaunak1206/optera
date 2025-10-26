@@ -1,8 +1,8 @@
 # Backend files - using Render for backend
-backend/
-api/
-agents/
-models/
+/backend/
+/api/
+/agents/
+/models/
 *.py
 *.pyc
 __pycache__/
