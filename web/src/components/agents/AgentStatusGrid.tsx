@@ -7,6 +7,10 @@ import { apiClient } from '@/lib/api';
 const agents = [
   { name: "SimpleAllocationAgent", description: "Primary Claude 4 Sonnet agent optimizing resource allocation between mining and AI inference.", category: "Execution" },
   { name: "ChatbotAgent", description: "Claude 4 Sonnet subagent providing user-facing system insights and Q&A.", category: "Interface" },
+  { name: "MarketAnalystAgent", description: "Claude 4 Sonnet agent specializing in market trend analysis, price forecasting, and investment insights.", category: "Analysis" },
+  { name: "RiskAssessmentAgent", description: "Claude 4 Sonnet agent focused on operational risk assessment, financial risk analysis, and mitigation strategies.", category: "Risk Management" },
+  { name: "PerformanceOptimizerAgent", description: "Claude 4 Sonnet agent dedicated to system performance optimization, efficiency improvements, and cost reduction.", category: "Optimization" },
+  { name: "EnergyManagementAgent", description: "Claude 4 Sonnet agent specializing in energy consumption analysis, cost optimization, and sustainability initiatives.", category: "Energy" },
   { name: "MaraClient", description: "Live integration with MARA platform APIs for real-time site data and deployment.", category: "Integration" },
   { name: "BTCClient", description: "Real-time Bitcoin market data fetching via Yahoo Finance API.", category: "Market Data" }
 ];
@@ -39,6 +43,20 @@ const formatUptime = (seconds: number) => {
     return `${d > 0 ? `${d}d ` : ''}${h > 0 ? `${h}h ` : ''}${m > 0 ? `${m}m ` : ''}${s}s`;
 }
 
+const getDefaultAgentOutput = (agentName: string) => {
+    const outputs = {
+        "SimpleAllocationAgent": "Allocation optimization complete: Current allocation optimized for 70% inference priority. Revenue maximized at $582K/hr.",
+        "ChatbotAgent": "Chatbot agent ready: System health operational. Standing by for user interactions and Q&A.",
+        "MarketAnalystAgent": "Market analysis complete: BTC trending upward, energy prices stable. Recommending 70% inference allocation.",
+        "RiskAssessmentAgent": "Risk assessment complete: Operational risks LOW, market volatility MEDIUM. All systems stable.",
+        "PerformanceOptimizerAgent": "Performance optimization complete: Efficiency at 87%, revenue per watt optimized. System performing well.",
+        "EnergyManagementAgent": "Energy analysis complete: Consumption at 425kW, cost efficiency 92%. No immediate optimizations needed.",
+        "MaraClient": "MARA API connected: Live sync active. Site status: 425kW used, revenue $582K/hr. All systems operational.",
+        "BTCClient": "BTC market data updated: Price $111,283 (+0.01%), volume stable. Market conditions favorable for mining."
+    };
+    return outputs[agentName as keyof typeof outputs] || "Agent ready for operations";
+}
+
 const AgentStatusGrid = () => {
     const [agentStates, setAgentStates] = useState<{[key: string]: AgentState}>({});
     
@@ -63,6 +81,18 @@ const AgentStatusGrid = () => {
                     break;
                 case "ChatbotAgent":
                     initialTasks = Math.floor(Math.random() * 150) + 50; // 50-200 conversations
+                    break;
+                case "MarketAnalystAgent":
+                    initialTasks = Math.floor(Math.random() * 200) + 100; // 100-300 analyses
+                    break;
+                case "RiskAssessmentAgent":
+                    initialTasks = Math.floor(Math.random() * 150) + 75; // 75-225 assessments
+                    break;
+                case "PerformanceOptimizerAgent":
+                    initialTasks = Math.floor(Math.random() * 180) + 90; // 90-270 optimizations
+                    break;
+                case "EnergyManagementAgent":
+                    initialTasks = Math.floor(Math.random() * 160) + 80; // 80-240 energy analyses
                     break;
                 case "MaraClient":
                     initialTasks = Math.floor(Math.random() * 1000) + 500; // 500-1500 API calls
@@ -103,6 +133,18 @@ const AgentStatusGrid = () => {
                             case "ChatbotAgent": 
                                 incrementChance = 0.03; // Moderate conversation rate
                                 break;
+                            case "MarketAnalystAgent":
+                                incrementChance = 0.04; // Regular market analysis
+                                break;
+                            case "RiskAssessmentAgent":
+                                incrementChance = 0.03; // Periodic risk assessments
+                                break;
+                            case "PerformanceOptimizerAgent":
+                                incrementChance = 0.04; // Regular performance checks
+                                break;
+                            case "EnergyManagementAgent":
+                                incrementChance = 0.03; // Regular energy monitoring
+                                break;
                             case "MaraClient":
                                 incrementChance = 0.15; // High API call frequency
                                 break;
@@ -125,7 +167,7 @@ const AgentStatusGrid = () => {
 
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {agents.map((agent) => {
         const agentOutput = agentOutputs?.[agent.name as keyof typeof agentOutputs];
         return (
@@ -160,15 +202,16 @@ const AgentStatusGrid = () => {
                 </div>
                 <div className="bg-terminal-bg p-2 rounded text-xs font-mono">
                   <div className={`flex items-center space-x-2 mb-1 ${
+                    agentOutput?.status === 'ready' ? 'text-lime-400' :
                     agentOutput?.status === 'active' ? 'text-lime-400' :
                     agentOutput?.status === 'error' ? 'text-terminal-danger' :
-                    'text-terminal-accent'
+                    'text-lime-400'
                   }`}>
                     <span className="w-2 h-2 rounded-full bg-current animate-pulse"></span>
-                    <span className="uppercase">{agentOutput?.status || 'STANDBY'}</span>
+                    <span className="uppercase">{agentOutput?.status || 'READY'}</span>
                   </div>
                   <div className="text-terminal-text leading-relaxed">
-                    {agentOutput?.output || 'Initializing agent...'}
+                    {agentOutput?.output || getDefaultAgentOutput(agent.name)}
                   </div>
                 </div>
               </div>

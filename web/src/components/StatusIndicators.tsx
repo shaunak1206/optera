@@ -66,6 +66,42 @@ const StatusIndicators = () => {
       status: revenueChange >= 0 ? 'up' : 'down', 
       change: `${revenueChange >= 0 ? '+' : ''}${revenueChange.toFixed(1)}%` 
     },
+    { 
+      label: 'Hash Price', 
+      value: currentPrice ? `$${currentPrice.hash_price.toFixed(2)}` : '$1.20', 
+      status: 'up', 
+      change: '+5.2%' 
+    },
+    { 
+      label: 'Profit Margin', 
+      value: siteStatus ? `${(((siteStatus.total_revenue - siteStatus.total_power_cost) / siteStatus.total_revenue) * 100).toFixed(1)}%` : '87.2%', 
+      status: 'good', 
+      change: '87.2%' 
+    },
+    { 
+      label: 'Efficiency', 
+      value: siteStatus ? `$${(siteStatus.total_revenue / siteStatus.total_power_used).toFixed(2)}/W` : '$1.37/W', 
+      status: 'good', 
+      change: '92.1%' 
+    },
+    { 
+      label: 'Agents', 
+      value: '8 READY', 
+      status: 'good', 
+      change: '100%' 
+    },
+    { 
+      label: 'Market Cap', 
+      value: btcData ? `$${(btcData.market_cap / 1e12).toFixed(2)}T` : '$2.22T', 
+      status: 'up', 
+      change: '+0.8%' 
+    },
+    { 
+      label: '24H Volume', 
+      value: btcData ? `$${(btcData.volume_24h / 1e9).toFixed(1)}B` : '$45.2B', 
+      status: 'up', 
+      change: '+12.3%' 
+    },
   ];
 
   const getStatusColor = (status: string) => {

@@ -11,14 +11,14 @@ class MaraClient:
     async def get_current_prices(self) -> List[Dict[str, Any]]:
         """Get current pricing data from MARA API"""
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"{self.base_url}/prices")
+            response = await client.get(f"{self.base_url}/prices", headers=self.headers)
             response.raise_for_status()
             return response.json()
     
     async def get_inventory(self) -> Dict[str, Any]:
         """Get available inventory from MARA API"""
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"{self.base_url}/inventory")
+            response = await client.get(f"{self.base_url}/inventory", headers=self.headers)
             response.raise_for_status()
             return response.json()
     

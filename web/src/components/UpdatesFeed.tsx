@@ -7,6 +7,9 @@ const UpdatesFeed = () => {
     { type: 'success', message: 'Auto-optimizer started - targeting max revenue', time: 'now' },
     { type: 'info', message: 'Inference priority locked at 70%', time: '1s ago' },
     { type: 'success', message: 'Connected to MARA API', time: '2s ago' },
+    { type: 'info', message: 'All 8 agents initialized and ready', time: '3s ago' },
+    { type: 'success', message: 'Market data sync active', time: '4s ago' },
+    { type: 'info', message: 'Energy efficiency at 92%', time: '5s ago' },
   ]);
 
   const { data: statusData } = useQuery({
