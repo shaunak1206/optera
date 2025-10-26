@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import json
+from datetime import datetime, timedelta
+import random
 
 app = FastAPI(title="Optera API", version="1.0.0")
 
@@ -12,6 +14,53 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Generate historical price data for the past 6 hours
+def generate_historical_prices(hours=6, interval_minutes=5):
+    """Generate realistic historical price data"""
+    prices = []
+    now = datetime.now()
+    num_points = (hours * 60) // interval_minutes
+
+    # Base prices with some realistic variation
+    base_hash = 1.20
+    base_token = 3.56
+    base_energy = 1.337
+
+    for i in range(num_points):
+        timestamp = now - timedelta(minutes=interval_minutes * (num_points - i - 1))
+
+        # Add realistic price fluctuations with smooth trends
+        trend_offset = i / num_points  # Creates gradual trends
+        hash_variation = random.uniform(-0.15, 0.15) + (trend_offset * 0.05)
+        token_variation = random.uniform(-0.30, 0.30) + (trend_offset * 0.10)
+        energy_variation = random.uniform(-0.10, 0.10)
+
+        prices.append({
+            "hash_price": round(base_hash + hash_variation, 6),
+            "token_price": round(base_token + token_variation, 6),
+            "energy_price": round(base_energy + energy_variation, 6),
+            "timestamp": timestamp.isoformat() + "Z"
+        })
+
+    return prices
+
+# Cache historical prices (regenerate periodically)
+_price_history_cache = None
+_cache_time = None
+
+def get_price_history():
+    """Get or generate price history with caching"""
+    global _price_history_cache, _cache_time
+
+    # Regenerate cache every 5 minutes to add new data point
+    now = datetime.now()
+    if _price_history_cache is None or _cache_time is None or \
+       (now - _cache_time).total_seconds() > 300:
+        _price_history_cache = generate_historical_prices()
+        _cache_time = now
+
+    return _price_history_cache
 
 @app.get("/")
 async def root():
@@ -32,13 +81,9 @@ async def root():
 
 @app.get("/api/status")
 async def get_status():
-    """Get system status and market data"""
+    """Get system status and market data with historical prices"""
     return {
-        "current_prices": [{
-            "hash_price": 1.20,
-            "token_price": 3.56,
-            "energy_price": 1.337
-        }],
+        "current_prices": get_price_history(),  # Return historical data
         "site_status": {
             "total_power_used": 425000,
             "total_revenue": 582000,
