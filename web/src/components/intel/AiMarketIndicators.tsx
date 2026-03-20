@@ -1,23 +1,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useQuery } from '@tanstack/react-query';
 
 const AiMarketIndicators = () => {
-  const { data: cryptoPrices } = useQuery({
-    queryKey: ['crypto-ai-tokens'],
-    queryFn: async () => {
-      try {
-        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=render-token,akash-network,golem&vs_currencies=usd');
-        return response.json();
-      } catch (error) {
-        console.warn('CoinGecko API unavailable');
-        return null;
-      }
-    },
-    refetchInterval: 300000,
-    retry: false,
-  });
-
   const apiPricing = [
     { provider: 'OpenAI (GPT-4o)', price: '$0.0025/1k tok', change: '+2.1%' },
     { provider: 'Anthropic (Claude 3.5)', price: '$0.003/1k tok', change: '0%' },
@@ -34,21 +18,9 @@ const AiMarketIndicators = () => {
   ];
 
   const aiTokens = [
-    { 
-      token: 'RENDER', 
-      price: cryptoPrices?.['render-token']?.usd ? `$${cryptoPrices['render-token'].usd.toFixed(3)}` : '$7.35',
-      change: '+15.2%'
-    },
-    { 
-      token: 'AKT', 
-      price: cryptoPrices?.['akash-network']?.usd ? `$${cryptoPrices['akash-network'].usd.toFixed(3)}` : '$3.78',
-      change: '+8.4%'
-    },
-    { 
-      token: 'GLM', 
-      price: cryptoPrices?.['golem']?.usd ? `$${cryptoPrices['golem'].usd.toFixed(3)}` : '$0.32',
-      change: '-2.1%'
-    }
+    { token: 'RENDER', price: '$7.35', change: '+15.2%' },
+    { token: 'AKT', price: '$3.78', change: '+8.4%' },
+    { token: 'GLM', price: '$0.32', change: '-2.1%' },
   ];
 
   return (
@@ -110,4 +82,4 @@ const AiMarketIndicators = () => {
   );
 };
 
-export default AiMarketIndicators; 
+export default AiMarketIndicators;

@@ -12,24 +12,7 @@ const demandData = [
 ];
 
 const EnergyMarketData = () => {
-  const { data: gridData } = useQuery({
-    queryKey: ['grid-status'],
-    queryFn: async () => {
-      try {
-        const response = await fetch('https://api.gridstatus.io/v1/datasets/pjm/load_forecast/latest?format=json', {
-          headers: { 'Accept': 'application/json' }
-        });
-        if (!response.ok) throw new Error('Grid API failed');
-        return response.json();
-      } catch (error) {
-        console.warn('Grid API unavailable, using mock data');
-        return null;
-      }
-    },
-    refetchInterval: 300000,
-    retry: false,
-  });
-
+  // Keep Carbon Intensity API — it's free, fast, and reliable
   const { data: carbonData } = useQuery({
     queryKey: ['carbon-intensity'],
     queryFn: async () => {
@@ -46,18 +29,10 @@ const EnergyMarketData = () => {
     retry: false,
   });
 
-  const currentDemand = gridData?.data?.[0]?.load_mw || 16800;
+  // Use staged data for grid demand instead of GridStatus.io API
+  const currentDemand = 16800;
   const currentIntensity = carbonData?.data?.[0]?.intensity?.actual || 150;
   const renewablePercent = Math.max(0, 100 - (currentIntensity / 500) * 100).toFixed(0);
-
-  const realTimeData = gridData?.data?.slice(0, 6).map((item: any, index: number) => ({
-    name: new Date(item.interval_start_utc).toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: false 
-    }),
-    demand: Math.round(item.load_mw / 1000)
-  })) || demandData;
 
   return (
     <Card className="bg-terminal-surface border-terminal-border">
@@ -105,7 +80,7 @@ const EnergyMarketData = () => {
         </div>
         <div className="h-40">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={realTimeData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
+            <AreaChart data={demandData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
                 <defs>
                     <linearGradient id="colorDemand" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#ffc658" stopOpacity={0.8}/>
@@ -131,4 +106,4 @@ const EnergyMarketData = () => {
   );
 };
 
-export default EnergyMarketData; 
+export default EnergyMarketData;

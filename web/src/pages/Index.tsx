@@ -10,6 +10,8 @@ import AutoOptimizerStatus from "@/components/AutoOptimizerStatus";
 import Intel from "@/pages/Intel";
 import Analytics from "@/pages/Analytics";
 import Agents from "@/pages/Agents";
+import About from "@/pages/About";
+import SystemVisualizations from "@/components/SystemVisualizations";
 
 const Dashboard = () => (
   <div className="p-6 space-y-4">
@@ -34,8 +36,9 @@ const Dashboard = () => (
     </div>
     
     {/* Bottom Row - Status Indicators */}
-    <div className="grid grid-cols-1">
+    <div className="grid grid-cols-1 space-y-6">
       <StatusIndicators />
+      <SystemVisualizations />
     </div>
   </div>
 );
@@ -53,6 +56,8 @@ const Index = () => {
         return <Analytics />;
       case "Agents":
         return <Agents />;
+      case "About":
+        return <About />;
       default:
         return <Dashboard />;
     }

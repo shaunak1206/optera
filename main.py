@@ -27,37 +27,60 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-mara_client = MaraClient(api_key=os.getenv("MARA_API_KEY"))
-btc_client = BTCClient()
+# Initialize clients and agents with error handling
+mara_client = None
+btc_client = None
+allocation_agent = None
+chatbot_agent = None
+market_analyst_agent = None
+risk_assessment_agent = None
+performance_optimizer_agent = None
+energy_management_agent = None
+agents_initialized = False
+initialization_error = None
 
-# Initialize all agents
-allocation_agent = SimpleAllocationAgent(
-    anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
-    mara_client=mara_client
-)
-chatbot_agent = ChatbotAgent(
-    anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
-    mara_client=mara_client,
-    allocation_agent=allocation_agent
-)
-market_analyst_agent = MarketAnalystAgent(
-    anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
-    mara_client=mara_client,
-    btc_client=btc_client
-)
-risk_assessment_agent = RiskAssessmentAgent(
-    anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
-    mara_client=mara_client,
-    btc_client=btc_client
-)
-performance_optimizer_agent = PerformanceOptimizerAgent(
-    anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
-    mara_client=mara_client
-)
-energy_management_agent = EnergyManagementAgent(
-    anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
-    mara_client=mara_client
-)
+try:
+    mara_client = MaraClient(api_key=os.getenv("MARA_API_KEY"))
+    btc_client = BTCClient()
+
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+    if not anthropic_key:
+        raise ValueError("ANTHROPIC_API_KEY environment variable not set")
+
+    # Initialize all agents
+    allocation_agent = SimpleAllocationAgent(
+        anthropic_api_key=anthropic_key,
+        mara_client=mara_client
+    )
+    chatbot_agent = ChatbotAgent(
+        anthropic_api_key=anthropic_key,
+        mara_client=mara_client,
+        allocation_agent=allocation_agent
+    )
+    market_analyst_agent = MarketAnalystAgent(
+        anthropic_api_key=anthropic_key,
+        mara_client=mara_client,
+        btc_client=btc_client
+    )
+    risk_assessment_agent = RiskAssessmentAgent(
+        anthropic_api_key=anthropic_key,
+        mara_client=mara_client,
+        btc_client=btc_client
+    )
+    performance_optimizer_agent = PerformanceOptimizerAgent(
+        anthropic_api_key=anthropic_key,
+        mara_client=mara_client
+    )
+    energy_management_agent = EnergyManagementAgent(
+        anthropic_api_key=anthropic_key,
+        mara_client=mara_client
+    )
+    agents_initialized = True
+    print("✅ All AI agents initialized successfully")
+except Exception as e:
+    initialization_error = str(e)
+    print(f"⚠️  Warning: AI agents not initialized: {e}")
+    print("   The API will run in fallback mode. Configure environment variables to enable AI features.")
 
 class AllocationRequest(BaseModel):
     target_revenue: Optional[float] = None
@@ -83,7 +106,13 @@ class ChatResponse(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"message": "MARA Resource Allocation API"}
+    return {
+        "message": "MARA Resource Allocation API",
+        "status": "running",
+        "ai_agents_enabled": agents_initialized,
+        "initialization_error": initialization_error if not agents_initialized else None,
+        "note": "Configure ANTHROPIC_API_KEY, MARA_API_KEY, and NEWS_API_KEY environment variables to enable AI features" if not agents_initialized else "All systems operational"
+    }
 
 @app.get("/api/status")
 async def get_status():

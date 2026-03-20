@@ -1,4 +1,12 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+import {
+  mockSiteStatus,
+  mockBtcData,
+  getMockPricesFresh,
+  getMockAgentOutputs,
+  getMockAllocationResult,
+  getChatResponse,
+  getMockMarketIntelligence,
+} from './mockData';
 
 export interface MaraPrice {
   energy_price: number;
@@ -90,84 +98,79 @@ export interface AgentOutput {
 }
 
 export interface AgentOutputs {
-  SimpleAllocationAgent: AgentOutput;
-  ChatbotAgent: AgentOutput;
-  MaraClient: AgentOutput;
-  BTCClient: AgentOutput;
+  [key: string]: AgentOutput;
 }
 
+// Small delay to simulate network latency (feels realistic without being slow)
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const randomDelay = () => delay(50 + Math.random() * 150);
+
 class ApiClient {
-  private baseUrl: string;
-
-  constructor(baseUrl: string = API_BASE_URL) {
-    this.baseUrl = baseUrl;
-  }
-
-  private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
-      ...options,
-    });
-
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
-    }
-
-    return response.json();
-  }
-
   async getStatus(): Promise<{ site_status: SiteStatus; current_prices: MaraPrice[]; btc_data: BTCData }> {
-    return this.request('/status');
+    await randomDelay();
+    return {
+      site_status: mockSiteStatus,
+      current_prices: getMockPricesFresh(),
+      btc_data: { ...mockBtcData, timestamp: new Date().toISOString() },
+    };
   }
 
   async optimizeAllocation(request: AllocationRequest): Promise<AllocationResponse> {
-    return this.request('/allocate', {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
+    await delay(300 + Math.random() * 700); // Simulate AI "thinking"
+    return getMockAllocationResult(request.inference_priority);
   }
 
-  async deployAllocation(allocation: { [key: string]: number }): Promise<any> {
-    return this.request('/deploy', {
-      method: 'POST',
-      body: JSON.stringify(allocation),
-    });
+  async deployAllocation(_allocation: { [key: string]: number }): Promise<any> {
+    await delay(200 + Math.random() * 300);
+    return { status: "deployed", message: "Allocation updated successfully" };
   }
 
   async getMarketIntelligence(): Promise<MarketIntelligence> {
-    return this.request('/market-intelligence');
+    await randomDelay();
+    return getMockMarketIntelligence();
   }
 
   async getBTCData(): Promise<BTCData> {
-    return this.request('/btc');
+    await randomDelay();
+    return { ...mockBtcData, timestamp: new Date().toISOString() };
   }
 
-  async sendChatMessage(message: string, context?: any): Promise<ChatResponse> {
-    return this.request('/chat', {
-      method: 'POST',
-      body: JSON.stringify({ message, context }),
-    });
+  async sendChatMessage(message: string, _context?: any): Promise<ChatResponse> {
+    await delay(400 + Math.random() * 800); // Simulate AI "thinking"
+    return {
+      response: getChatResponse(message),
+      timestamp: new Date().toISOString(),
+      context_used: null,
+      error: false,
+    };
   }
 
   async getSystemSummary(): Promise<SystemSummary> {
-    return this.request('/chat/summary');
+    await randomDelay();
+    return {
+      summary: {
+        status: "operational",
+        revenue: "$661K/day",
+        efficiency: "87%",
+        risk_level: "LOW",
+      },
+      raw_response: "All systems operational. Revenue at $661K/day with 87% efficiency. Risk levels are LOW across all categories.",
+    };
   }
 
-  async getChatHistory(limit: number = 10): Promise<{ history: ChatHistoryItem[] }> {
-    return this.request(`/chat/history?limit=${limit}`);
+  async getChatHistory(_limit: number = 10): Promise<{ history: ChatHistoryItem[] }> {
+    await randomDelay();
+    return { history: [] }; // Start with empty history
   }
 
   async clearChatHistory(): Promise<{ status: string }> {
-    return this.request('/chat/history', {
-      method: 'DELETE',
-    });
+    await randomDelay();
+    return { status: "cleared" };
   }
 
   async getAgentOutputs(): Promise<AgentOutputs> {
-    return this.request('/agents/outputs');
+    await randomDelay();
+    return getMockAgentOutputs();
   }
 }
 

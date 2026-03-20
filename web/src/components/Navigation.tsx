@@ -6,7 +6,7 @@ interface NavigationProps {
 }
 
 const Navigation = ({ activeTab, setActiveTab }: NavigationProps) => {
-  const tabs = ["Dashboard", "Intel", "Analytics", "Agents"];
+  const tabs = ["Dashboard", "Intel", "Analytics", "Agents", "About"];
 
   return (
     <nav className="bg-terminal-surface px-6 py-4">

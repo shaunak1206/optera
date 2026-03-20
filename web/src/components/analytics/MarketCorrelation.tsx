@@ -3,8 +3,6 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, Tooltip, Legend, ZAxis } from 'recharts';
 import { btcData, inferenceData } from '../../lib/analyticsData';
-import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../../lib/api';
 
 interface CorrelationDataPoint {
   btcPrice: number;
@@ -27,100 +25,31 @@ const MarketCorrelation = () => {
   const [yAxis, setYAxis] = useState('profit');
   const [correlationData, setCorrelationData] = useState<CorrelationDataPoint[]>([]);
 
-  const { data: maraStatus } = useQuery({
-    queryKey: ['mara-correlation-status'],
-    queryFn: () => new Promise(resolve => setTimeout(() => resolve(apiClient.getStatus() as any), 120000)),
-    refetchInterval: 30000,
-  });
-
-  const { data: energyData } = useQuery({
-    queryKey: ['energy-correlation'],
-    queryFn: async () => {
-      await new Promise(res => setTimeout(res, 120000));
-      try {
-        const response = await fetch('https://api.gridstatus.io/v1/datasets/pjm/load_forecast/latest?format=json&limit=60');
-        return response.json();
-      } catch (error) {
-        console.warn('Energy correlation data unavailable');
-        return null;
-      }
-    },
-    refetchInterval: 1800000,
-    retry: false,
-  });
-
-  const { data: btcMarketData } = useQuery({
-    queryKey: ['btc-correlation'],
-    queryFn: async () => {
-      await new Promise(res => setTimeout(res, 120000));
-      try {
-        const response = await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=60&interval=daily');
-        return response.json();
-      } catch (error) {
-        console.warn('BTC correlation data unavailable');
-        return null;
-      }
-    },
-    refetchInterval: 3600000,
-    retry: false,
-  });
-
   useEffect(() => {
-    const createRealTimeCorrelationData = () => {
-      let data: CorrelationDataPoint[];
-
-      if ((maraStatus as any) && btcMarketData?.prices && energyData?.data) {
-        // Use real-time data for correlation analysis
-        const currentRevenue = (maraStatus as any).site_status?.total_revenue || 0;
-        const currentPowerCost = (maraStatus as any).site_status?.total_power_cost || 0;
-        const recentPrices = btcMarketData.prices.slice(-60);
-        const recentEnergyData = energyData.data.slice(-60);
-
-        data = recentPrices.map((pricePoint: any, index: number) => {
-          const energyPoint = recentEnergyData[Math.min(index, recentEnergyData.length - 1)];
-          const baseProfit = (currentRevenue - currentPowerCost) / 24;
-          const btcPrice = pricePoint[1];
-          
-          return {
-            btcPrice,
-            aiDemand: (energyPoint?.load_mw || 16800) / 200, // Normalize to percentage-like value
-            energyCost: (energyPoint?.load_mw || 16800) / 100000, // Estimated energy cost correlation
-            profit: baseProfit * (btcPrice / 100000) * (0.8 + Math.random() * 0.4),
-            switches: Math.floor(Math.abs(btcPrice - 100000) / 5000) + 2, // Switches based on BTC volatility
-          };
-        });
-      } else {
-        // Fallback to processed static data with MARA context
-        data = btcData.map((btcPoint, index) => {
-          const inferencePoint = inferenceData[index];
-          const maraMultiplier = (maraStatus as any) ? ((maraStatus as any).site_status?.total_revenue || 1000) / 1000 : 1;
-          
-          if (inferencePoint) {
-            return {
-              btcPrice: btcPoint.Close,
-              aiDemand: (inferencePoint.token_price / 4) * 100 * maraMultiplier,
-              energyCost: inferencePoint.energy_price,
-              profit: inferencePoint.gpu_profit * maraMultiplier,
-              switches: Math.floor(Math.random() * 15) + 5,
-            };
-          }
-          return {
-            btcPrice: btcPoint.Close,
-            aiDemand: 50 * maraMultiplier,
-            energyCost: 0.05,
-            profit: 100 * maraMultiplier,
-            switches: 10,
-          };
-        });
-      }
+    const data = btcData.map((btcPoint, index) => {
+      const inferencePoint = inferenceData[index];
       
-      setCorrelationData(data);
-    };
+      if (inferencePoint) {
+        return {
+          btcPrice: btcPoint.Close,
+          aiDemand: (inferencePoint.token_price / 4) * 100,
+          energyCost: inferencePoint.energy_price,
+          profit: inferencePoint.gpu_profit,
+          switches: Math.floor(Math.random() * 15) + 5,
+        };
+      }
+      return {
+        btcPrice: btcPoint.Close,
+        aiDemand: 50,
+        energyCost: 0.05,
+        profit: 100,
+        switches: 10,
+      };
+    });
+    
+    setCorrelationData(data);
+  }, []);
 
-    createRealTimeCorrelationData();
-  }, [maraStatus, btcMarketData, energyData]);
-
-  // Defensive: if static data is missing, do not render
   if (!btcData || !inferenceData || btcData.length === 0 || inferenceData.length === 0) {
     return null;
   }
@@ -193,4 +122,4 @@ const MarketCorrelation = () => {
   );
 };
 
-export default MarketCorrelation; 
+export default MarketCorrelation;

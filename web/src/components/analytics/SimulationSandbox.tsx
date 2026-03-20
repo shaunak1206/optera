@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ResponsiveContainer, LineChart, Line, Tooltip, XAxis, YAxis, Legend, CartesianGrid } from 'recharts';
 import { btcData, inferenceData } from '../../lib/analyticsData';
-import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../../lib/api';
 
 interface SimulationOutcome {
   title: string;
@@ -25,42 +23,13 @@ const SimulationSandbox = () => {
     const [simulationResult, setSimulationResult] = useState<SimulationOutcome | null>(null);
     const [simulationOutcomes, setSimulationOutcomes] = useState<{[key: string]: SimulationOutcome}>({});
 
-    const { data: maraStatus } = useQuery({
-        queryKey: ['mara-simulation-status'],
-        queryFn: () => new Promise(resolve => setTimeout(() => resolve(apiClient.getStatus() as any), 120000)),
-        refetchInterval: 30000,
-    });
-
-    const { data: marketIntelligence } = useQuery({
-        queryKey: ['simulation-market-intel'],
-        queryFn: () => new Promise(resolve => setTimeout(() => resolve(apiClient.getMarketIntelligence()), 120000)),
-        refetchInterval: 300000,
-        retry: false,
-    });
-
     useEffect(() => {
-        // Generate simulation outcomes based on real MARA data
         const generateSimulations = () => {
-            const currentRevenue = (maraStatus as any)?.site_status?.total_revenue || 0;
-            const currentPowerCost = (maraStatus as any)?.site_status?.total_power_cost || 0;
-            const baseProfit = (currentRevenue - currentPowerCost) / 24; // Daily profit
-            
-            let recentData, actualProfitData;
-
-            if (maraStatus) {
-                // Use real MARA performance data
-                actualProfitData = Array.from({ length: 7 }, (_, index) => ({
-                    name: `Day ${index + 1}`,
-                    'Actual Profit': Math.round(baseProfit * (0.8 + Math.random() * 0.4)), // Add realistic variance
-                }));
-            } else {
-                // Fallback to static data
-                recentData = inferenceData.slice(-7);
-                actualProfitData = recentData.map((point, index) => ({
-                    name: `Day ${index + 1}`,
-                    'Actual Profit': Math.round(point.gpu_profit),
-                }));
-            }
+            const recentData = inferenceData.slice(-7);
+            const actualProfitData = recentData.map((point, index) => ({
+                name: `Day ${index + 1}`,
+                'Actual Profit': Math.round(point.gpu_profit),
+            }));
 
             const outcomes: {[key: string]: SimulationOutcome} = {
                 'btc-crash-50': {
@@ -119,7 +88,7 @@ const SimulationSandbox = () => {
         };
         
         generateSimulations();
-    }, [maraStatus, marketIntelligence]);
+    }, []);
 
     const runSimulation = () => {
         if (selectedScenario && simulationOutcomes[selectedScenario]) {
@@ -127,7 +96,6 @@ const SimulationSandbox = () => {
         }
     }
 
-    // Defensive: if static data is missing, do not render
     if (!btcData || !inferenceData || btcData.length === 0 || inferenceData.length === 0) {
       return null;
     }
@@ -197,4 +165,4 @@ const SimulationSandbox = () => {
   );
 };
 
-export default SimulationSandbox; 
+export default SimulationSandbox;

@@ -9,7 +9,7 @@ const AutoOptimizerStatus = () => {
   const isActive = isOptimizing || isDeploying;
 
   return (
-    <Card className="bg-terminal-surface border-gray-700 h-64">
+    <Card className="bg-terminal-surface border-gray-700">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-terminal-text flex items-center gap-2">
@@ -34,7 +34,7 @@ const AutoOptimizerStatus = () => {
           Auto-optimizing for maximum revenue every 30s
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3 h-[calc(100%-120px)] flex flex-col">
+      <CardContent className="space-y-3">
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
             <span className="text-terminal-muted">Inference Priority:</span>
@@ -46,7 +46,7 @@ const AutoOptimizerStatus = () => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin">
+        <div>
           {lastOptimization && (
             <div className="space-y-2 p-3 bg-gray-800 rounded border border-gray-600">
               <h5 className="text-sm text-terminal-text font-medium">Last Optimization:</h5>

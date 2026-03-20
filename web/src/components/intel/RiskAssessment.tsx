@@ -3,6 +3,7 @@ import { Progress } from "@/components/ui/progress";
 import { useQuery } from '@tanstack/react-query';
 
 const RiskAssessment = () => {
+    // Keep Fear & Greed API — it's free, fast, and reliable
     const { data: fearGreedData } = useQuery({
         queryKey: ['fear-greed-index'],
         queryFn: async () => {
@@ -18,35 +19,9 @@ const RiskAssessment = () => {
         retry: false,
     });
 
-    const { data: volatilityData } = useQuery({
-        queryKey: ['btc-volatility'],
-        queryFn: async () => {
-            try {
-                const response = await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=7&interval=daily');
-                if (!response.ok) throw new Error('API failed');
-                const data = await response.json();
-                
-                const prices = data.prices.map((p: any) => p[1]);
-                const returns = [];
-                for (let i = 1; i < prices.length; i++) {
-                    returns.push((prices[i] - prices[i-1]) / prices[i-1]);
-                }
-                const avgReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
-                const variance = returns.reduce((acc, ret) => acc + Math.pow(ret - avgReturn, 2), 0) / returns.length;
-                const volatility = Math.sqrt(variance * 365) * 100;
-                
-                return { volatility };
-            } catch (error) {
-                console.warn('Volatility calculation failed');
-                return { volatility: 65 };
-            }
-        },
-        refetchInterval: 3600000,
-        retry: false,
-    });
-
     const fearGreedValue = fearGreedData?.data?.[0]?.value || 45;
-    const priceVolatility = Math.min(95, Math.max(5, volatilityData?.volatility || 65));
+    // Use staged volatility data instead of CoinGecko
+    const priceVolatility = 52; // Realistic moderate volatility
     
     const risks = [
         {
@@ -107,4 +82,4 @@ const RiskAssessment = () => {
     )
 }
 
-export default RiskAssessment; 
+export default RiskAssessment;
